@@ -217,75 +217,133 @@ export class ImageCropperComponent {
     let newLeft = this.startPoint.boxLeft + deltaX;
     let newTop = this.startPoint.boxTop + deltaY;
 
-    // Constrain to image bounds
-    newLeft = Math.max(
-      this.imageBounds.left,
-      Math.min(newLeft, this.imageBounds.left + this.imageBounds.width - this.cropBox.width)
-    );
-    newTop = Math.max(
-      this.imageBounds.top,
-      Math.min(newTop, this.imageBounds.top + this.imageBounds.height - this.cropBox.height)
-    );
-
-    this.cropBox.left = newLeft;
-    this.cropBox.top = newTop;
+    // Only apply changes if they don't exceed bounds
+    if (newLeft >= this.imageBounds.left && 
+        newLeft + this.cropBox.width <= this.imageBounds.left + this.imageBounds.width) {
+      this.cropBox.left = newLeft;
+    }
+    
+    if (newTop >= this.imageBounds.top && 
+        newTop + this.cropBox.height <= this.imageBounds.top + this.imageBounds.height) {
+      this.cropBox.top = newTop;
+    }
   }
 
   private handleResize(touchX: number, touchY: number) {
-    let newBox = { ...this.cropBox };
     const minSize = 10;
+    let newLeft = this.cropBox.left;
+    let newTop = this.cropBox.top;
+    let newWidth = this.cropBox.width;
+    let newHeight = this.cropBox.height;
 
+    // Calculate potential new dimensions
     switch (this.currentHandle) {
       case 'nw':
-        newBox.width = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
-        newBox.height = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
-        newBox.left = touchX;
-        newBox.top = touchY;
+        if (touchX <= newLeft + newWidth - minSize && touchY <= newTop + newHeight - minSize) {
+          const widthChange = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
+          const heightChange = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
+          
+          if (this.forceSquare) {
+            const change = Math.min(widthChange, heightChange);
+            if (touchX >= this.imageBounds.left && 
+                touchY >= this.imageBounds.top) {
+              newLeft = this.startPoint.boxLeft + this.startPoint.boxWidth - change;
+              newTop = this.startPoint.boxTop + this.startPoint.boxHeight - change;
+              newWidth = change;
+              newHeight = change;
+            }
+          } else {
+            if (touchX >= this.imageBounds.left) {
+              newLeft = touchX;
+              newWidth = widthChange;
+            }
+            if (touchY >= this.imageBounds.top) {
+              newTop = touchY;
+              newHeight = heightChange;
+            }
+          }
+        }
         break;
+
       case 'ne':
-        newBox.width = touchX - this.startPoint.boxLeft;
-        newBox.height = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
-        newBox.top = touchY;
+        if (touchX >= newLeft + minSize && touchY <= newTop + newHeight - minSize) {
+          const widthChange = touchX - this.startPoint.boxLeft;
+          const heightChange = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
+          
+          if (this.forceSquare) {
+            const change = Math.min(widthChange, heightChange);
+            if (newLeft + change <= this.imageBounds.left + this.imageBounds.width && 
+                touchY >= this.imageBounds.top) {
+              newTop = this.startPoint.boxTop + this.startPoint.boxHeight - change;
+              newWidth = change;
+              newHeight = change;
+            }
+          } else {
+            if (newLeft + widthChange <= this.imageBounds.left + this.imageBounds.width) {
+              newWidth = widthChange;
+            }
+            if (touchY >= this.imageBounds.top) {
+              newTop = touchY;
+              newHeight = heightChange;
+            }
+          }
+        }
         break;
+
       case 'sw':
-        newBox.width = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
-        newBox.height = touchY - this.startPoint.boxTop;
-        newBox.left = touchX;
+        if (touchX <= newLeft + newWidth - minSize && touchY >= newTop + minSize) {
+          const widthChange = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
+          const heightChange = touchY - this.startPoint.boxTop;
+          
+          if (this.forceSquare) {
+            const change = Math.min(widthChange, heightChange);
+            if (touchX >= this.imageBounds.left && 
+                newTop + change <= this.imageBounds.top + this.imageBounds.height) {
+              newLeft = this.startPoint.boxLeft + this.startPoint.boxWidth - change;
+              newWidth = change;
+              newHeight = change;
+            }
+          } else {
+            if (touchX >= this.imageBounds.left) {
+              newLeft = touchX;
+              newWidth = widthChange;
+            }
+            if (newTop + heightChange <= this.imageBounds.top + this.imageBounds.height) {
+              newHeight = heightChange;
+            }
+          }
+        }
         break;
+
       case 'se':
-        newBox.width = touchX - this.startPoint.boxLeft;
-        newBox.height = touchY - this.startPoint.boxTop;
+        if (touchX >= newLeft + minSize && touchY >= newTop + minSize) {
+          const widthChange = touchX - this.startPoint.boxLeft;
+          const heightChange = touchY - this.startPoint.boxTop;
+          
+          if (this.forceSquare) {
+            const change = Math.min(widthChange, heightChange);
+            if (newLeft + change <= this.imageBounds.left + this.imageBounds.width && 
+                newTop + change <= this.imageBounds.top + this.imageBounds.height) {
+              newWidth = change;
+              newHeight = change;
+            }
+          } else {
+            if (newLeft + widthChange <= this.imageBounds.left + this.imageBounds.width) {
+              newWidth = widthChange;
+            }
+            if (newTop + heightChange <= this.imageBounds.top + this.imageBounds.height) {
+              newHeight = heightChange;
+            }
+          }
+        }
         break;
     }
 
-    // Enforce minimum size
-    newBox.width = Math.max(minSize, newBox.width);
-    newBox.height = Math.max(minSize, newBox.height);
-
-    // Enforce square if needed
-    if (this.forceSquare) {
-      const size = Math.max(newBox.width, newBox.height);
-      newBox.width = size;
-      newBox.height = size;
-    }
-
-    // Constrain to image bounds
-    if (newBox.left < this.imageBounds.left) {
-      newBox.width += newBox.left - this.imageBounds.left;
-      newBox.left = this.imageBounds.left;
-    }
-    if (newBox.top < this.imageBounds.top) {
-      newBox.height += newBox.top - this.imageBounds.top;
-      newBox.top = this.imageBounds.top;
-    }
-    if (newBox.left + newBox.width > this.imageBounds.left + this.imageBounds.width) {
-      newBox.width = this.imageBounds.left + this.imageBounds.width - newBox.left;
-    }
-    if (newBox.top + newBox.height > this.imageBounds.top + this.imageBounds.height) {
-      newBox.height = this.imageBounds.top + this.imageBounds.height - newBox.top;
-    }
-
-    this.cropBox = newBox;
+    // Apply the changes
+    this.cropBox.left = newLeft;
+    this.cropBox.top = newTop;
+    this.cropBox.width = newWidth;
+    this.cropBox.height = newHeight;
   }
 
   private onGestureEnd() {
