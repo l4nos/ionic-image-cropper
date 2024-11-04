@@ -202,7 +202,7 @@ export class ImageCropperComponent {
     const touchY = ((touch.clientY - wrapperRect.top) / wrapperRect.height) * 100;
     
     if (this.currentHandle) {
-      this.handleResize(touchX, touchY);
+      this.handleResize(touchX, touchY, wrapperRect);
     } else {
       this.handleDrag(touchX, touchY);
     }
@@ -229,114 +229,89 @@ export class ImageCropperComponent {
     }
   }
 
-  private handleResize(touchX: number, touchY: number) {
+  private handleResize(touchX: number, touchY: number, wrapperRect: DOMRect) {
     const minSize = 10;
     let newLeft = this.cropBox.left;
     let newTop = this.cropBox.top;
     let newWidth = this.cropBox.width;
     let newHeight = this.cropBox.height;
 
-    // Calculate potential new dimensions
+    // Convert current positions to pixels
+    const pxLeft = (newLeft * wrapperRect.width) / 100;
+    const pxTop = (newTop * wrapperRect.height) / 100;
+    const pxTouchX = (touchX * wrapperRect.width) / 100;
+    const pxTouchY = (touchY * wrapperRect.height) / 100;
+    const pxStartLeft = (this.startPoint.boxLeft * wrapperRect.width) / 100;
+    const pxStartTop = (this.startPoint.boxTop * wrapperRect.height) / 100;
+    const pxStartWidth = (this.startPoint.boxWidth * wrapperRect.width) / 100;
+    const pxStartHeight = (this.startPoint.boxHeight * wrapperRect.height) / 100;
+
+    // Initialize new dimensions in pixels
+    let pxNewWidth = 0;
+    let pxNewHeight = 0;
+    let pxNewLeft = pxLeft;
+    let pxNewTop = pxTop;
+
+    // Calculate potential new dimensions in pixels
     switch (this.currentHandle) {
       case 'nw':
-        if (touchX <= newLeft + newWidth - minSize && touchY <= newTop + newHeight - minSize) {
-          const widthChange = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
-          const heightChange = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
-          
-          if (this.forceSquare) {
-            const change = Math.min(widthChange, heightChange);
-            if (touchX >= this.imageBounds.left && 
-                touchY >= this.imageBounds.top) {
-              newLeft = this.startPoint.boxLeft + this.startPoint.boxWidth - change;
-              newTop = this.startPoint.boxTop + this.startPoint.boxHeight - change;
-              newWidth = change;
-              newHeight = change;
-            }
-          } else {
-            if (touchX >= this.imageBounds.left) {
-              newLeft = touchX;
-              newWidth = widthChange;
-            }
-            if (touchY >= this.imageBounds.top) {
-              newTop = touchY;
-              newHeight = heightChange;
-            }
-          }
-        }
+        pxNewWidth = pxStartLeft + pxStartWidth - pxTouchX;
+        pxNewHeight = pxStartTop + pxStartHeight - pxTouchY;
+        pxNewLeft = pxTouchX;
+        pxNewTop = pxTouchY;
         break;
-
       case 'ne':
-        if (touchX >= newLeft + minSize && touchY <= newTop + newHeight - minSize) {
-          const widthChange = touchX - this.startPoint.boxLeft;
-          const heightChange = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
-          
-          if (this.forceSquare) {
-            const change = Math.min(widthChange, heightChange);
-            if (newLeft + change <= this.imageBounds.left + this.imageBounds.width && 
-                touchY >= this.imageBounds.top) {
-              newTop = this.startPoint.boxTop + this.startPoint.boxHeight - change;
-              newWidth = change;
-              newHeight = change;
-            }
-          } else {
-            if (newLeft + widthChange <= this.imageBounds.left + this.imageBounds.width) {
-              newWidth = widthChange;
-            }
-            if (touchY >= this.imageBounds.top) {
-              newTop = touchY;
-              newHeight = heightChange;
-            }
-          }
-        }
+        pxNewWidth = pxTouchX - pxStartLeft;
+        pxNewHeight = pxStartTop + pxStartHeight - pxTouchY;
+        pxNewTop = pxTouchY;
         break;
-
       case 'sw':
-        if (touchX <= newLeft + newWidth - minSize && touchY >= newTop + minSize) {
-          const widthChange = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
-          const heightChange = touchY - this.startPoint.boxTop;
-          
-          if (this.forceSquare) {
-            const change = Math.min(widthChange, heightChange);
-            if (touchX >= this.imageBounds.left && 
-                newTop + change <= this.imageBounds.top + this.imageBounds.height) {
-              newLeft = this.startPoint.boxLeft + this.startPoint.boxWidth - change;
-              newWidth = change;
-              newHeight = change;
-            }
-          } else {
-            if (touchX >= this.imageBounds.left) {
-              newLeft = touchX;
-              newWidth = widthChange;
-            }
-            if (newTop + heightChange <= this.imageBounds.top + this.imageBounds.height) {
-              newHeight = heightChange;
-            }
-          }
-        }
+        pxNewWidth = pxStartLeft + pxStartWidth - pxTouchX;
+        pxNewHeight = pxTouchY - pxStartTop;
+        pxNewLeft = pxTouchX;
         break;
-
       case 'se':
-        if (touchX >= newLeft + minSize && touchY >= newTop + minSize) {
-          const widthChange = touchX - this.startPoint.boxLeft;
-          const heightChange = touchY - this.startPoint.boxTop;
-          
-          if (this.forceSquare) {
-            const change = Math.min(widthChange, heightChange);
-            if (newLeft + change <= this.imageBounds.left + this.imageBounds.width && 
-                newTop + change <= this.imageBounds.top + this.imageBounds.height) {
-              newWidth = change;
-              newHeight = change;
-            }
-          } else {
-            if (newLeft + widthChange <= this.imageBounds.left + this.imageBounds.width) {
-              newWidth = widthChange;
-            }
-            if (newTop + heightChange <= this.imageBounds.top + this.imageBounds.height) {
-              newHeight = heightChange;
-            }
-          }
-        }
+        pxNewWidth = pxTouchX - pxStartLeft;
+        pxNewHeight = pxTouchY - pxStartTop;
         break;
+    }
+
+    // Convert image bounds to pixels
+    const pxImageLeft = (this.imageBounds.left * wrapperRect.width) / 100;
+    const pxImageTop = (this.imageBounds.top * wrapperRect.height) / 100;
+    const pxImageWidth = (this.imageBounds.width * wrapperRect.width) / 100;
+    const pxImageHeight = (this.imageBounds.height * wrapperRect.height) / 100;
+
+    // Convert minSize to pixels based on wrapper width
+    const pxMinSize = (minSize * wrapperRect.width) / 100;
+
+    // Check bounds
+    if (pxNewLeft < pxImageLeft || 
+        pxNewTop < pxImageTop || 
+        pxNewLeft + pxNewWidth > pxImageLeft + pxImageWidth ||
+        pxNewTop + pxNewHeight > pxImageTop + pxImageHeight ||
+        pxNewWidth < pxMinSize ||
+        pxNewHeight < pxMinSize) {
+      return;
+    }
+
+    if (this.forceSquare) {
+      // Use the smaller dimension in pixels
+      const pxSize = Math.min(pxNewWidth, pxNewHeight);
+      
+      // Convert pixel size back to percentages for width and height separately
+      newWidth = (pxSize / wrapperRect.width) * 100;
+      newHeight = (pxSize / wrapperRect.height) * 100;
+      
+      // Convert new position back to percentages
+      newLeft = (pxNewLeft / wrapperRect.width) * 100;
+      newTop = (pxNewTop / wrapperRect.height) * 100;
+    } else {
+      // Convert dimensions back to percentages
+      newWidth = (pxNewWidth / wrapperRect.width) * 100;
+      newHeight = (pxNewHeight / wrapperRect.height) * 100;
+      newLeft = (pxNewLeft / wrapperRect.width) * 100;
+      newTop = (pxNewTop / wrapperRect.height) * 100;
     }
 
     // Apply the changes
