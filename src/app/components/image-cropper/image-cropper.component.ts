@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, NgZone } from '@angular/core';
 import { GestureController } from '@ionic/angular';
 
 @Component({
@@ -40,7 +40,32 @@ export class ImageCropperComponent {
     height: 0
   };
 
-  constructor(private gestureCtrl: GestureController) {}
+  private resizeObserver: ResizeObserver;
+  private previousWrapperWidth = 0;
+  private previousWrapperHeight = 0;
+
+  constructor(
+    private gestureCtrl: GestureController,
+    private ngZone: NgZone
+  ) {
+    this.resizeObserver = new ResizeObserver((entries) => {
+      this.ngZone.run(() => {
+        for (const entry of entries) {
+          if (entry.target === this.imageWrapper?.nativeElement) {
+            const newWidth = entry.contentRect.width;
+            const newHeight = entry.contentRect.height;
+            
+            if (newWidth !== this.previousWrapperWidth || 
+                newHeight !== this.previousWrapperHeight) {
+              this.previousWrapperWidth = newWidth;
+              this.previousWrapperHeight = newHeight;
+              this.updateCropperOnResize();
+            }
+          }
+        }
+      });
+    });
+  }
 
   ngAfterViewInit() {
     if (!this.cropperImage?.nativeElement) return;
@@ -48,33 +73,72 @@ export class ImageCropperComponent {
     this.cropperImage.nativeElement.onload = () => {
       setTimeout(() => this.initializeCropper(), 100);
     };
+
+    if (this.imageWrapper?.nativeElement) {
+      this.resizeObserver.observe(this.imageWrapper.nativeElement);
+    }
   }
 
-  private initializeCropper() {
+  ngOnDestroy() {
+    this.resizeObserver.disconnect();
+  }
+
+  private updateCropperOnResize() {
+    if (!this.cropperImage?.nativeElement || !this.imageWrapper?.nativeElement) return;
+
+    const oldImageBounds = { ...this.imageBounds };
+    const oldCropBox = { ...this.cropBox };
+
+    this.updateImageBounds();
+
+    // Calculate relative position within old bounds
+    const relativeLeft = (oldCropBox.left - oldImageBounds.left) / oldImageBounds.width;
+    const relativeTop = (oldCropBox.top - oldImageBounds.top) / oldImageBounds.height;
+    const relativeWidth = oldCropBox.width / oldImageBounds.width;
+    const relativeHeight = oldCropBox.height / oldImageBounds.height;
+
+    // Apply relative position to new bounds
+    this.cropBox = {
+      left: this.imageBounds.left + (relativeLeft * this.imageBounds.width),
+      top: this.imageBounds.top + (relativeTop * this.imageBounds.height),
+      width: relativeWidth * this.imageBounds.width,
+      height: relativeHeight * this.imageBounds.height
+    };
+
+    this.updateCropBox();
+  }
+
+  private updateImageBounds() {
     if (!this.cropperImage?.nativeElement || !this.imageWrapper?.nativeElement) return;
 
     this.imageRect = this.cropperImage.nativeElement.getBoundingClientRect();
     const wrapperRect = this.imageWrapper.nativeElement.getBoundingClientRect();
 
-    // Calculate actual image bounds within wrapper
     const imageAspect = this.imageRect.width / this.imageRect.height;
     const wrapperAspect = wrapperRect.width / wrapperRect.height;
 
     if (imageAspect > wrapperAspect) {
-      // Image is wider than wrapper
       this.imageBounds.width = 100;
       this.imageBounds.height = (wrapperRect.width / imageAspect) / wrapperRect.height * 100;
       this.imageBounds.left = 0;
       this.imageBounds.top = (100 - this.imageBounds.height) / 2;
     } else {
-      // Image is taller than wrapper
       this.imageBounds.height = 100;
       this.imageBounds.width = (wrapperRect.height * imageAspect) / wrapperRect.width * 100;
       this.imageBounds.top = 0;
       this.imageBounds.left = (100 - this.imageBounds.width) / 2;
     }
+  }
 
-    // Initialize crop box within image bounds
+  private initializeCropper() {
+    if (!this.cropperImage?.nativeElement || !this.imageWrapper?.nativeElement) return;
+
+    const wrapperRect = this.imageWrapper.nativeElement.getBoundingClientRect();
+    this.previousWrapperWidth = wrapperRect.width;
+    this.previousWrapperHeight = wrapperRect.height;
+
+    this.updateImageBounds();
+
     const size = Math.min(this.imageBounds.width, this.imageBounds.height) * 0.6;
     this.cropBox = {
       width: size,
@@ -105,13 +169,18 @@ export class ImageCropperComponent {
   private onGestureStart(ev: any) {
     if (!this.cropperImage?.nativeElement || !this.imageWrapper?.nativeElement) return;
 
-    this.imageRect = this.cropperImage.nativeElement.getBoundingClientRect();
+    this.updateImageBounds();
     const touch = ev.event.touches[0];
     const target = ev.event.target as HTMLElement;
+    const wrapperRect = this.imageWrapper.nativeElement.getBoundingClientRect();
+
+    // Calculate touch position relative to wrapper
+    const touchX = ((touch.clientX - wrapperRect.left) / wrapperRect.width) * 100;
+    const touchY = ((touch.clientY - wrapperRect.top) / wrapperRect.height) * 100;
 
     this.startPoint = {
-      x: touch.clientX,
-      y: touch.clientY,
+      x: touchX,
+      y: touchY,
       boxLeft: this.cropBox.left,
       boxTop: this.cropBox.top,
       boxWidth: this.cropBox.width,
@@ -123,26 +192,30 @@ export class ImageCropperComponent {
   }
 
   private onGestureMove(ev: any) {
-    if (!this.imageRect || !this.imageWrapper?.nativeElement) return;
+    if (!this.imageWrapper?.nativeElement) return;
 
     const touch = ev.event.touches[0];
     const wrapperRect = this.imageWrapper.nativeElement.getBoundingClientRect();
     
+    // Calculate touch position relative to wrapper
+    const touchX = ((touch.clientX - wrapperRect.left) / wrapperRect.width) * 100;
+    const touchY = ((touch.clientY - wrapperRect.top) / wrapperRect.height) * 100;
+    
     if (this.currentHandle) {
-      this.handleResize(touch, wrapperRect);
+      this.handleResize(touchX, touchY);
     } else {
-      this.handleDrag(touch, wrapperRect);
+      this.handleDrag(touchX, touchY);
     }
 
     this.updateCropBox();
   }
 
-  private handleDrag(touch: Touch, wrapperRect: DOMRect) {
-    const deltaXPercent = ((touch.clientX - this.startPoint.x) / wrapperRect.width) * 100;
-    const deltaYPercent = ((touch.clientY - this.startPoint.y) / wrapperRect.height) * 100;
+  private handleDrag(touchX: number, touchY: number) {
+    const deltaX = touchX - this.startPoint.x;
+    const deltaY = touchY - this.startPoint.y;
 
-    let newLeft = this.startPoint.boxLeft + deltaXPercent;
-    let newTop = this.startPoint.boxTop + deltaYPercent;
+    let newLeft = this.startPoint.boxLeft + deltaX;
+    let newTop = this.startPoint.boxTop + deltaY;
 
     // Constrain to image bounds
     newLeft = Math.max(
@@ -158,33 +231,30 @@ export class ImageCropperComponent {
     this.cropBox.top = newTop;
   }
 
-  private handleResize(touch: Touch, wrapperRect: DOMRect) {
-    const touchXPercent = (touch.clientX - wrapperRect.left) / wrapperRect.width * 100;
-    const touchYPercent = (touch.clientY - wrapperRect.top) / wrapperRect.height * 100;
-
-    const minSize = 10; // Minimum size in percentage
+  private handleResize(touchX: number, touchY: number) {
     let newBox = { ...this.cropBox };
+    const minSize = 10;
 
     switch (this.currentHandle) {
       case 'nw':
-        newBox.width = this.startPoint.boxLeft + this.startPoint.boxWidth - touchXPercent;
-        newBox.height = this.startPoint.boxTop + this.startPoint.boxHeight - touchYPercent;
-        newBox.left = touchXPercent;
-        newBox.top = touchYPercent;
+        newBox.width = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
+        newBox.height = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
+        newBox.left = touchX;
+        newBox.top = touchY;
         break;
       case 'ne':
-        newBox.width = touchXPercent - this.startPoint.boxLeft;
-        newBox.height = this.startPoint.boxTop + this.startPoint.boxHeight - touchYPercent;
-        newBox.top = touchYPercent;
+        newBox.width = touchX - this.startPoint.boxLeft;
+        newBox.height = this.startPoint.boxTop + this.startPoint.boxHeight - touchY;
+        newBox.top = touchY;
         break;
       case 'sw':
-        newBox.width = this.startPoint.boxLeft + this.startPoint.boxWidth - touchXPercent;
-        newBox.height = touchYPercent - this.startPoint.boxTop;
-        newBox.left = touchXPercent;
+        newBox.width = this.startPoint.boxLeft + this.startPoint.boxWidth - touchX;
+        newBox.height = touchY - this.startPoint.boxTop;
+        newBox.left = touchX;
         break;
       case 'se':
-        newBox.width = touchXPercent - this.startPoint.boxLeft;
-        newBox.height = touchYPercent - this.startPoint.boxTop;
+        newBox.width = touchX - this.startPoint.boxLeft;
+        newBox.height = touchY - this.startPoint.boxTop;
         break;
     }
 
@@ -233,35 +303,49 @@ export class ImageCropperComponent {
   }
 
   cropImage() {
-    if (!this.cropperImage?.nativeElement || !this.imageRect || !this.imageWrapper?.nativeElement) return;
+    if (!this.cropperImage?.nativeElement || !this.imageWrapper?.nativeElement) return;
 
+    const img = this.cropperImage.nativeElement;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Get actual image dimensions
+    const imageRect = img.getBoundingClientRect();
     const wrapperRect = this.imageWrapper.nativeElement.getBoundingClientRect();
-    const imageWidth = this.imageRect.width;
-    const imageHeight = this.imageRect.height;
 
-    // Calculate the actual crop coordinates relative to the image
-    const scaleX = this.cropperImage.nativeElement.naturalWidth / imageWidth;
-    const scaleY = this.cropperImage.nativeElement.naturalHeight / imageHeight;
+    // Calculate the actual displayed image position and size
+    const displayedWidth = imageRect.width;
+    const displayedHeight = imageRect.height;
+    const displayedLeft = imageRect.left - wrapperRect.left;
+    const displayedTop = imageRect.top - wrapperRect.top;
 
-    const cropLeft = ((this.cropBox.left - this.imageBounds.left) / this.imageBounds.width) * imageWidth;
-    const cropTop = ((this.cropBox.top - this.imageBounds.top) / this.imageBounds.height) * imageHeight;
-    const cropWidth = (this.cropBox.width / this.imageBounds.width) * imageWidth;
-    const cropHeight = (this.cropBox.height / this.imageBounds.height) * imageHeight;
+    // Convert crop box percentages to pixels relative to the image
+    const cropLeft = ((this.cropBox.left / 100) * wrapperRect.width) - displayedLeft;
+    const cropTop = ((this.cropBox.top / 100) * wrapperRect.height) - displayedTop;
+    const cropWidth = (this.cropBox.width / 100) * wrapperRect.width;
+    const cropHeight = (this.cropBox.height / 100) * wrapperRect.height;
+
+    // Calculate scaling between displayed size and natural size
+    const scaleX = img.naturalWidth / displayedWidth;
+    const scaleY = img.naturalHeight / displayedHeight;
 
     // Set output size
     canvas.width = cropWidth;
     canvas.height = cropHeight;
 
+    // Calculate source coordinates in the natural image
+    const sourceX = cropLeft * scaleX;
+    const sourceY = cropTop * scaleY;
+    const sourceWidth = cropWidth * scaleX;
+    const sourceHeight = cropHeight * scaleY;
+
     ctx.drawImage(
-      this.cropperImage.nativeElement,
-      cropLeft * scaleX,
-      cropTop * scaleY,
-      cropWidth * scaleX,
-      cropHeight * scaleY,
+      img,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
       0,
       0,
       cropWidth,
