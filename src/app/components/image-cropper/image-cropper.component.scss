@@ -1,0 +1,124 @@
+.cropper-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+}
+
+.image-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+  margin-bottom: 56px;
+}
+
+.source-image {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+}
+
+.crop-box {
+  position: absolute;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+  touch-action: none;
+  will-change: left, top, width, height;
+
+  .grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    .grid-line {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.5);
+
+      &.horizontal {
+        left: 0;
+        right: 0;
+        height: 1px;
+
+        &:nth-child(1) { top: 33.33%; }
+        &:nth-child(2) { top: 66.66%; }
+      }
+
+      &.vertical {
+        top: 0;
+        bottom: 0;
+        width: 1px;
+
+        &:nth-child(3) { left: 33.33%; }
+        &:nth-child(4) { left: 66.66%; }
+      }
+    }
+  }
+}
+
+.resize-handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border-radius: 50%;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+
+  &::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: #000;
+    border-radius: 50%;
+  }
+
+  &.nw {
+    top: 0;
+    left: 0;
+    cursor: nw-resize;
+  }
+
+  &.ne {
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    cursor: ne-resize;
+  }
+
+  &.sw {
+    bottom: 0;
+    left: 0;
+    transform: translate(-50%, 50%);
+    cursor: sw-resize;
+  }
+
+  &.se {
+    bottom: 0;
+    right: 0;
+    transform: translate(50%, 50%);
+    cursor: se-resize;
+  }
+}
+
+.crop-button {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  --background: var(--ion-color-primary);
+  --border-radius: 0;
+  height: 56px;
+}

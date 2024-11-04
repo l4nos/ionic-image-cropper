@@ -1,20 +1,67 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Blank
+      Image Cropper
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="container">
+    <ng-container *ngIf="!selectedImage">
+      <div class="upload-container">
+        <ion-button expand="block" (click)="fileInput.click()" [disabled]="isLoading">
+          <ion-icon name="image-outline" slot="start"></ion-icon>
+          {{ isLoading ? 'Loading...' : 'Select Image' }}
+        </ion-button>
+        <input
+          #fileInput
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          style="display: none"
+        >
+        <ion-note color="medium">
+          Supported formats: JPG, PNG, GIF (max 10MB)
+        </ion-note>
+      </div>
+    </ng-container>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <ng-container *ngIf="selectedImage">
+      <ion-item lines="none" class="crop-toggle">
+        <ion-label>Force Square Crop</ion-label>
+        <ion-toggle [(ngModel)]="isSquareCrop"></ion-toggle>
+      </ion-item>
+
+      <app-image-cropper
+        [imageUrl]="selectedImage"
+        [forceSquare]="isSquareCrop"
+        (croppedImage)="onCroppedImage($event)"
+      ></app-image-cropper>
+    </ng-container>
+
+    <ng-container *ngIf="croppedImage">
+      <div class="preview-container">
+        <h2>Cropped Result</h2>
+        <img [src]="croppedImage" alt="Cropped image" class="preview-image">
+        <div class="button-group">
+          <ion-button expand="block" (click)="resetState()">
+            <ion-icon name="camera-outline" slot="start"></ion-icon>
+            Crop New Image
+          </ion-button>
+          <!-- Add download button for the cropped image -->
+          <ion-button expand="block" color="secondary" (click)="downloadImage()" *ngIf="croppedImage">
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            Download
+          </ion-button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <ion-spinner name="circular"></ion-spinner>
+    <ion-text color="light">Loading image...</ion-text>
   </div>
 </ion-content>

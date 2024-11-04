@@ -1,0 +1,20 @@
+<div class="cropper-container">
+  <div #imageWrapper class="image-wrapper">
+    <img #cropperImage [src]="imageUrl" class="source-image" alt="Image to crop">
+    <div #cropArea class="crop-box">
+      <div class="grid">
+        <div class="grid-line horizontal"></div>
+        <div class="grid-line horizontal"></div>
+        <div class="grid-line vertical"></div>
+        <div class="grid-line vertical"></div>
+      </div>
+      <div class="resize-handle nw" data-handle="nw"></div>
+      <div class="resize-handle ne" data-handle="ne"></div>
+      <div class="resize-handle sw" data-handle="sw"></div>
+      <div class="resize-handle se" data-handle="se"></div>
+    </div>
+  </div>
+  <ion-button expand="block" (click)="cropImage()" class="crop-button">
+    Crop Image
+  </ion-button>
+</div>

@@ -1,27 +1,167 @@
-#container {
-  text-align: center;
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px;
+  overflow: hidden;
+}
 
+.upload-container {
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  
+  ion-button {
+    margin: 20px auto;
+    max-width: 200px;
+  }
+
+  ion-note {
+    display: block;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+}
+
+.crop-toggle {
+  width: 100%;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --background: transparent;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+
+  ion-label {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  ion-toggle {
+    --background: var(--ion-color-medium);
+    --background-checked: var(--ion-color-primary);
+    --handle-background: var(--ion-color-light);
+  }
+}
+
+.preview-container {
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  text-align: center;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  margin-top: 20px;
+  flex-shrink: 0;
+
+  h2 {
+    color: var(--ion-color-dark);
+    margin-bottom: 16px;
+  }
+
+  .preview-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    ion-button {
+      margin: 0;
+      max-width: 200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+  }
+}
+
+// Make sure the image cropper takes appropriate height when active
+app-image-cropper {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  
+  @media (min-height: 600px) {
+    min-height: 400px;
+  }
+}
+
+// Loading overlay
+.loading-overlay {
   position: absolute;
+  top: 0;
   left: 0;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+
+  ion-spinner {
+    width: 48px;
+    height: 48px;
+    --color: var(--ion-color-light);
+  }
+
+  ion-text {
+    font-size: 16px;
+  }
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+// Mobile-specific adjustments
+@media (max-width: 768px) {
+  .container {
+    padding: 8px;
+  }
+
+  .preview-container {
+    padding: 16px;
+  }
+
+  .crop-toggle {
+    ion-label {
+      font-size: 14px;
+    }
+  }
+
+  app-image-cropper {
+    min-height: 300px;
+  }
+
+  .loading-overlay {
+    ion-spinner {
+      width: 36px;
+      height: 36px;
+    }
+
+    ion-text {
+      font-size: 14px;
+    }
+  }
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
+// Handle smaller screens
+@media (max-width: 320px) {
+  .container {
+    padding: 4px;
+  }
 
-  color: #8c8c8c;
-
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
+  app-image-cropper {
+    min-height: 250px;
+  }
 }
