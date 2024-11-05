@@ -75,11 +75,11 @@ export class ImageCropperService {
     switch(handle){
 
       case "ne":
-
+        this.topRightHandle(touchX, touchY, wrapperRect, startPoint, cropBox, imageBounds, forceSquare)
       break;
 
       case "nw":
-
+        this.topLeftHandle(touchX, touchY, wrapperRect, startPoint, cropBox, imageBounds, forceSquare)
       break;
 
       case "se": // DONE
@@ -87,8 +87,7 @@ export class ImageCropperService {
       break;
 
       case "sw":
-
-
+        this.bottomLeftHandle(touchX, touchY, wrapperRect, startPoint, cropBox, imageBounds, forceSquare)
       break;
 
     }
@@ -128,6 +127,11 @@ export class ImageCropperService {
     imageBounds: { left: number; top: number; width: number; height: number },
     forceSquare: boolean
   ){
+
+    let proposedWidth = touchX - startPoint.boxLeft
+    let proposedHeight = touchY - startPoint.boxTop
+    let maximumWidth = imageBounds.width - startPoint.boxLeft;
+    let maximumHeight = imageBounds.height - startPoint.boxTop;
 
   }
 
