@@ -1,6 +1,8 @@
-<div #cropperContainer class="cropper-container">
+<div #cropperContainer class="cropper-container" [style.height]="'calc(100vh - '+offsetVH+'px)'">
   <div #imageWrapper class="image-wrapper">
-    <img #cropperImage [src]="imageUrl" class="source-image" alt="Image to crop">
+    <div class="inner-image-container">
+      <img [style.max-height]="'calc(100vh - '+offsetVH+'px)'" #cropperImage [src]="imageUrl" class="source-image" alt="Image to crop">
+    </div>
     <div #cropArea class="crop-box">
       <div class="grid">
         <div class="grid-line horizontal"></div>

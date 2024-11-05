@@ -11,6 +11,7 @@ export class ImageCropperComponent {
   @Input() imageUrl: string = '';
   @Input() forceSquare: boolean = true;
   @Output() croppedImage = new EventEmitter<string>();
+  @Input() offsetVH: number = 10;
 
   @ViewChild('cropperImage') cropperImage!: ElementRef<HTMLImageElement>;
   @ViewChild('cropArea') cropArea!: ElementRef<HTMLDivElement>;
@@ -51,23 +52,19 @@ export class ImageCropperComponent {
     private ngZone: NgZone
   ) {
     this.resizeObserver = new ResizeObserver((entries) => {
-      this.ngZone.run(() => {
+      this.ngZone.run(async () => {
         for (const entry of entries) {
           if (entry.target === this.imageWrapper?.nativeElement) {
-
-            // TODO APPLY A FIXED HEIGHT TO THE IMAGE WRAPPER BASED ON ITS PARENT CURRENT HEIGHT
-            const parentHeight = this.cropperContainer.nativeElement.getBoundingClientRect().height;
-            this.imageWrapper.nativeElement.style.height = `${parentHeight}px`;
-
             const newWidth = entry.contentRect.width;
             const newHeight = entry.contentRect.height;
 
             if (newWidth !== this.previousWrapperWidth ||
-                newHeight !== this.previousWrapperHeight) {
+              newHeight !== this.previousWrapperHeight) {
               this.previousWrapperWidth = newWidth;
               this.previousWrapperHeight = newHeight;
               this.updateCropperOnResize();
             }
+
           }
         }
       });
