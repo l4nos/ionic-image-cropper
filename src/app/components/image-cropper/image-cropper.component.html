@@ -1,4 +1,4 @@
-<div class="cropper-container">
+<div #cropperContainer class="cropper-container">
   <div #imageWrapper class="image-wrapper">
     <img #cropperImage [src]="imageUrl" class="source-image" alt="Image to crop">
     <div #cropArea class="crop-box">
@@ -14,7 +14,9 @@
       <div class="resize-handle se" data-handle="se"></div>
     </div>
   </div>
-  <ion-button expand="block" (click)="cropImage()" class="crop-button">
+</div>
+<div class="button-container">
+  <ion-button shape="rounded" (click)="cropImage()" class="crop-button">
     Crop Image
   </ion-button>
 </div>

@@ -15,6 +15,7 @@ export class ImageCropperComponent {
   @ViewChild('cropperImage') cropperImage!: ElementRef<HTMLImageElement>;
   @ViewChild('cropArea') cropArea!: ElementRef<HTMLDivElement>;
   @ViewChild('imageWrapper') imageWrapper!: ElementRef<HTMLDivElement>;
+  @ViewChild('cropperContainer') cropperContainer!: ElementRef<HTMLDivElement>;
 
   private cropBox = {
     left: 20,
@@ -53,6 +54,11 @@ export class ImageCropperComponent {
       this.ngZone.run(() => {
         for (const entry of entries) {
           if (entry.target === this.imageWrapper?.nativeElement) {
+
+            // TODO APPLY A FIXED HEIGHT TO THE IMAGE WRAPPER BASED ON ITS PARENT CURRENT HEIGHT
+            const parentHeight = this.cropperContainer.nativeElement.getBoundingClientRect().height;
+            this.imageWrapper.nativeElement.style.height = `${parentHeight}px`;
+
             const newWidth = entry.contentRect.width;
             const newHeight = entry.contentRect.height;
 

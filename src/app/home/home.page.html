@@ -28,11 +28,6 @@
     </ng-container>
 
     <ng-container *ngIf="selectedImage">
-      <ion-item lines="none" class="crop-toggle">
-        <ion-label>Force Square Crop</ion-label>
-        <ion-toggle [(ngModel)]="isSquareCrop"></ion-toggle>
-      </ion-item>
-
       <app-image-cropper
         [imageUrl]="selectedImage"
         [forceSquare]="isSquareCrop"
