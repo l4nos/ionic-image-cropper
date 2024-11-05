@@ -539,8 +539,7 @@ export class ImageCropperComponent {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Get actual image dimensions
-    const imageRect = img.getBoundingClientRect();
+    // GET NATURAL HEIGHT OF IMAGE
     const intrinsicHeight = img.naturalHeight;
     const intrinsicWidth = img.naturalWidth;
 
@@ -550,18 +549,24 @@ export class ImageCropperComponent {
     const cropWidthPercentage = ((this.cropBox.width / this.imageBounds.width) * 100);
     const cropHeightPercentage = ((this.cropBox.height / this.imageBounds.height) * 100)
 
+    const sourceLeft = (cropLeftPercentage / 100) * intrinsicWidth;
+    const sourceTop = (cropTopPercentage / 100) * intrinsicHeight;
+    const sourceWidth = (cropWidthPercentage / 100) * intrinsicWidth;
+    const sourceHeight = (cropHeightPercentage / 100) * intrinsicHeight;
 
+    canvas.width = sourceWidth;
+    canvas.height = sourceHeight;
 
     ctx.drawImage(
       img,
-      sourceX,
-      sourceY,
+      sourceLeft,
+      sourceTop,
       sourceWidth,
       sourceHeight,
       0,
       0,
-      cropWidth,
-      cropHeight
+      sourceWidth,
+      sourceHeight
     );
     this.croppedImage.emit(canvas.toDataURL('image/jpeg', 0.95));
   }
