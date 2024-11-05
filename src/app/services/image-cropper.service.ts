@@ -103,10 +103,50 @@ export class ImageCropperService {
     imageBounds: { left: number; top: number; width: number; height: number },
     forceSquare: boolean
   ){
+    const minSize = 10;
+    let proposedWidth = startPoint.boxWidth - (touchX - startPoint.boxLeft);
+    let proposedHeight = startPoint.boxHeight - (touchY - startPoint.boxTop);
+    let proposedLeft = touchX;
+    let proposedTop = touchY;
 
-    // TODO IMPLEMENT TOP LEFT HANDLE LOGIC
+    if (proposedLeft < imageBounds.left) {
+      proposedLeft = imageBounds.left;
+      proposedWidth = startPoint.boxLeft + startPoint.boxWidth - imageBounds.left;
+    }
 
+    if (proposedTop < imageBounds.top) {
+      proposedTop = imageBounds.top;
+      proposedHeight = startPoint.boxTop + startPoint.boxHeight - imageBounds.top;
+    }
 
+    if (proposedWidth < minSize) {
+      proposedWidth = minSize;
+      proposedLeft = startPoint.boxLeft + startPoint.boxWidth - minSize;
+    }
+
+    if (proposedHeight < minSize) {
+      proposedHeight = minSize;
+      proposedTop = startPoint.boxTop + startPoint.boxHeight - minSize;
+    }
+
+    if (forceSquare) {
+      const smallestDimension = Math.min(proposedWidth, proposedHeight);
+      proposedWidth = smallestDimension;
+      proposedHeight = smallestDimension;
+
+      if (touchX < startPoint.boxLeft + startPoint.boxWidth - smallestDimension) {
+        proposedLeft = startPoint.boxLeft + startPoint.boxWidth - smallestDimension;
+      }
+
+      if (touchY < startPoint.boxTop + startPoint.boxHeight - smallestDimension) {
+        proposedTop = startPoint.boxTop + startPoint.boxHeight - smallestDimension;
+      }
+    }
+
+    cropBox.left = proposedLeft;
+    cropBox.top = proposedTop;
+    cropBox.width = proposedWidth;
+    cropBox.height = proposedHeight;
   }
 
   topRightHandle(
@@ -118,10 +158,43 @@ export class ImageCropperService {
     imageBounds: { left: number; top: number; width: number; height: number },
     forceSquare: boolean
   ){
+    const minSize = 10;
+    let proposedWidth = touchX - startPoint.boxLeft;
+    let proposedHeight = startPoint.boxHeight - (touchY - startPoint.boxTop);
+    let proposedTop = touchY;
+    const maximumWidth = imageBounds.width - startPoint.boxLeft;
+    
+    if (proposedWidth > maximumWidth) {
+      proposedWidth = maximumWidth;
+    }
 
-    // TODO IMPLEMENT TOP RIGHT HANDLE LOGIC
+    if (proposedTop < imageBounds.top) {
+      proposedTop = imageBounds.top;
+      proposedHeight = startPoint.boxTop + startPoint.boxHeight - imageBounds.top;
+    }
 
+    if (proposedWidth < minSize) {
+      proposedWidth = minSize;
+    }
 
+    if (proposedHeight < minSize) {
+      proposedHeight = minSize;
+      proposedTop = startPoint.boxTop + startPoint.boxHeight - minSize;
+    }
+
+    if (forceSquare) {
+      const smallestDimension = Math.min(proposedWidth, proposedHeight);
+      proposedWidth = smallestDimension;
+      proposedHeight = smallestDimension;
+
+      if (touchY < startPoint.boxTop + startPoint.boxHeight - smallestDimension) {
+        proposedTop = startPoint.boxTop + startPoint.boxHeight - smallestDimension;
+      }
+    }
+
+    cropBox.top = proposedTop;
+    cropBox.width = proposedWidth;
+    cropBox.height = proposedHeight;
   }
 
   bottomLeftHandle(
@@ -133,9 +206,43 @@ export class ImageCropperService {
     imageBounds: { left: number; top: number; width: number; height: number },
     forceSquare: boolean
   ){
+    const minSize = 10;
+    let proposedWidth = startPoint.boxWidth - (touchX - startPoint.boxLeft);
+    let proposedHeight = touchY - startPoint.boxTop;
+    let proposedLeft = touchX;
+    const maximumHeight = imageBounds.height - startPoint.boxTop;
 
-    // TODO IMPLEMENT BOTTOM LEFT HANDLE LOGIC
+    if (proposedLeft < imageBounds.left) {
+      proposedLeft = imageBounds.left;
+      proposedWidth = startPoint.boxLeft + startPoint.boxWidth - imageBounds.left;
+    }
 
+    if (proposedHeight > maximumHeight) {
+      proposedHeight = maximumHeight;
+    }
+
+    if (proposedWidth < minSize) {
+      proposedWidth = minSize;
+      proposedLeft = startPoint.boxLeft + startPoint.boxWidth - minSize;
+    }
+
+    if (proposedHeight < minSize) {
+      proposedHeight = minSize;
+    }
+
+    if (forceSquare) {
+      const smallestDimension = Math.min(proposedWidth, proposedHeight);
+      proposedWidth = smallestDimension;
+      proposedHeight = smallestDimension;
+
+      if (touchX < startPoint.boxLeft + startPoint.boxWidth - smallestDimension) {
+        proposedLeft = startPoint.boxLeft + startPoint.boxWidth - smallestDimension;
+      }
+    }
+
+    cropBox.left = proposedLeft;
+    cropBox.width = proposedWidth;
+    cropBox.height = proposedHeight;
   }
 
   bottomRightHandle(
