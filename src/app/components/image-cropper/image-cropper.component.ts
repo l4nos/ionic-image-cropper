@@ -11,7 +11,7 @@ import { ResizeHandle } from 'src/app/types/ResizeHandle';
 })
 export class ImageCropperComponent {
   @Input() imageUrl: string = '';
-  @Input() forceSquare: boolean = false;
+  @Input() forceSquare: boolean = true;
   @Output() croppedImage = new EventEmitter<string>();
 
   @ViewChild('cropperImage') cropperImage!: ElementRef<HTMLImageElement>;
@@ -129,12 +129,23 @@ export class ImageCropperComponent {
       this.imageBounds
     );
 
-    this.cropBox = {
-      width: this.imageBounds.width - 50,
-      height: this.imageBounds.height,
-      left:50,
-      top: 0
-    };
+    if(this.forceSquare){
+      const fixedSize = Math.min(this.imageBounds.height, this.imageBounds.width);
+      this.cropBox = {
+        width: fixedSize,
+        height: fixedSize,
+        left: (this.imageBounds.width - fixedSize) / 2,
+        top: (this.imageBounds.height - fixedSize) / 2
+      };
+    }else{
+      this.cropBox = {
+        width: this.imageBounds.width,
+        height: this.imageBounds.height,
+        left:0,
+        top: 0
+      };
+    }
+
 
     this.setupGestures();
     this.updateCropBox();

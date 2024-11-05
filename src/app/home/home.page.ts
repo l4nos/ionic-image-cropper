@@ -9,7 +9,7 @@ import { ToastController } from '@ionic/angular';
 export class HomePage {
   selectedImage: string = '';
   croppedImage: string = '';
-  isSquareCrop: boolean = false;
+  isSquareCrop: boolean = true;
   isLoading: boolean = false;
 
   constructor(private toastController: ToastController) {}
@@ -18,7 +18,7 @@ export class HomePage {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       // Check file type
       if (!file.type.startsWith('image/')) {
         await this.showToast('Please select an image file');
@@ -33,7 +33,7 @@ export class HomePage {
 
       this.isLoading = true;
       const reader = new FileReader();
-      
+
       reader.onload = (e: ProgressEvent<FileReader>) => {
         this.selectedImage = e.target?.result as string;
         this.croppedImage = ''; // Reset cropped image when new image is selected
@@ -57,7 +57,7 @@ export class HomePage {
   async onCroppedImage(imageUrl: string): Promise<void> {
     try {
       this.croppedImage = imageUrl;
-      
+
       // Validate the cropped image URL
       if (!imageUrl.startsWith('data:image/')) {
         throw new Error('Invalid image format');
@@ -77,7 +77,7 @@ export class HomePage {
     const link = document.createElement('a');
     link.href = this.croppedImage;
     link.download = `cropped-image-${new Date().getTime()}.jpg`;
-    
+
     // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
