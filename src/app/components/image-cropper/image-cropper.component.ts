@@ -541,33 +541,16 @@ export class ImageCropperComponent {
 
     // Get actual image dimensions
     const imageRect = img.getBoundingClientRect();
-    const wrapperRect = this.imageWrapper.nativeElement.getBoundingClientRect();
-
-    // Calculate the actual displayed image position and size
-    const displayedWidth = imageRect.width;
-    const displayedHeight = imageRect.height;
-    const displayedLeft = imageRect.left - wrapperRect.left;
-    const displayedTop = imageRect.top - wrapperRect.top;
+    const intrinsicHeight = img.naturalHeight;
+    const intrinsicWidth = img.naturalWidth;
 
     // Convert crop box percentages to pixels relative to the image
-    const cropLeft = ((this.cropBox.left / 100) * wrapperRect.width) - displayedLeft;
-    const cropTop = ((this.cropBox.top / 100) * wrapperRect.height) - displayedTop;
-    const cropWidth = (this.cropBox.width / 100) * wrapperRect.width;
-    const cropHeight = (this.cropBox.height / 100) * wrapperRect.height;
+    const cropLeftPercentage = ((this.cropBox.left / this.imageBounds.width) * 100);
+    const cropTopPercentage = ((this.cropBox.top / this.imageBounds.height) * 100);
+    const cropWidthPercentage = ((this.cropBox.width / this.imageBounds.width) * 100);
+    const cropHeightPercentage = ((this.cropBox.height / this.imageBounds.height) * 100)
 
-    // Calculate scaling between displayed size and natural size
-    const scaleX = img.naturalWidth / displayedWidth;
-    const scaleY = img.naturalHeight / displayedHeight;
 
-    // Set output size
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
-
-    // Calculate source coordinates in the natural image
-    const sourceX = cropLeft * scaleX;
-    const sourceY = cropTop * scaleY;
-    const sourceWidth = cropWidth * scaleX;
-    const sourceHeight = cropHeight * scaleY;
 
     ctx.drawImage(
       img,
