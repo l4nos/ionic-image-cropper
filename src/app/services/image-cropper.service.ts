@@ -104,6 +104,9 @@ export class ImageCropperService {
     forceSquare: boolean
   ){
 
+    // TODO IMPLEMENT TOP LEFT HANDLE LOGIC
+
+
   }
 
   topRightHandle(
@@ -115,6 +118,9 @@ export class ImageCropperService {
     imageBounds: { left: number; top: number; width: number; height: number },
     forceSquare: boolean
   ){
+
+    // TODO IMPLEMENT TOP RIGHT HANDLE LOGIC
+
 
   }
 
@@ -128,10 +134,7 @@ export class ImageCropperService {
     forceSquare: boolean
   ){
 
-    let proposedWidth = touchX - startPoint.boxLeft
-    let proposedHeight = touchY - startPoint.boxTop
-    let maximumWidth = imageBounds.width - startPoint.boxLeft;
-    let maximumHeight = imageBounds.height - startPoint.boxTop;
+    // TODO IMPLEMENT BOTTOM LEFT HANDLE LOGIC
 
   }
 
