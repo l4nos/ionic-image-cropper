@@ -1,8 +1,6 @@
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, NgZone } from '@angular/core';
 import { GestureController } from '@ionic/angular';
-import { ImageCropperService } from '../../services/image-cropper.service';
 import { ResizeHandle } from 'src/app/types/ResizeHandle';
-
 
 @Component({
   selector: 'app-image-cropper',
