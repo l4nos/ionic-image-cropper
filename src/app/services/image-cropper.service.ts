@@ -83,38 +83,7 @@ export class ImageCropperService {
       break;
 
       case "se": // DONE
-
-        let proposedWidth = touchX - startPoint.boxLeft
-        let proposedHeight = touchY - startPoint.boxTop
-        let maximumWidth = imageBounds.width - startPoint.boxLeft;
-        let maximumHeight = imageBounds.height - startPoint.boxTop;
-
-        if(forceSquare){
-          let HighestDimension = Math.max(proposedWidth, proposedHeight);
-
-          if(HighestDimension >= maximumHeight){
-            HighestDimension = maximumHeight;
-          }
-
-          if(HighestDimension >= maximumWidth){
-            HighestDimension = maximumWidth;
-          }
-
-          proposedHeight = HighestDimension;
-          proposedWidth = HighestDimension;
-
-        }else{
-          if(proposedWidth >= maximumWidth){
-            proposedWidth = maximumWidth;
-          }
-
-          if(proposedHeight >= maximumHeight){
-            proposedHeight = maximumHeight;
-          }
-        }
-
-        cropBox.width = proposedWidth;
-        cropBox.height = proposedHeight;
+        this.bottomRightHandle(touchX, touchY, wrapperRect, startPoint, cropBox, imageBounds, forceSquare);
       break;
 
       case "sw":
@@ -124,8 +93,84 @@ export class ImageCropperService {
 
     }
 
+  }
 
+  topLeftHandle(
+    touchX: number,
+    touchY: number,
+    wrapperRect: DOMRect,
+    startPoint: { boxLeft: number; boxTop: number; boxWidth: number; boxHeight: number, x: number, y: number },
+    cropBox: { left: number; top: number; width: number; height: number },
+    imageBounds: { left: number; top: number; width: number; height: number },
+    forceSquare: boolean
+  ){
 
+  }
+
+  topRightHandle(
+    touchX: number,
+    touchY: number,
+    wrapperRect: DOMRect,
+    startPoint: { boxLeft: number; boxTop: number; boxWidth: number; boxHeight: number, x: number, y: number },
+    cropBox: { left: number; top: number; width: number; height: number },
+    imageBounds: { left: number; top: number; width: number; height: number },
+    forceSquare: boolean
+  ){
+
+  }
+
+  bottomLeftHandle(
+    touchX: number,
+    touchY: number,
+    wrapperRect: DOMRect,
+    startPoint: { boxLeft: number; boxTop: number; boxWidth: number; boxHeight: number, x: number, y: number },
+    cropBox: { left: number; top: number; width: number; height: number },
+    imageBounds: { left: number; top: number; width: number; height: number },
+    forceSquare: boolean
+  ){
+
+  }
+
+  bottomRightHandle(
+    touchX: number,
+    touchY: number,
+    wrapperRect: DOMRect,
+    startPoint: { boxLeft: number; boxTop: number; boxWidth: number; boxHeight: number, x: number, y: number },
+    cropBox: { left: number; top: number; width: number; height: number },
+    imageBounds: { left: number; top: number; width: number; height: number },
+    forceSquare: boolean,
+  ){
+    let proposedWidth = touchX - startPoint.boxLeft
+    let proposedHeight = touchY - startPoint.boxTop
+    let maximumWidth = imageBounds.width - startPoint.boxLeft;
+    let maximumHeight = imageBounds.height - startPoint.boxTop;
+
+    if(forceSquare){
+      let HighestDimension = Math.max(proposedWidth, proposedHeight);
+
+      if(HighestDimension >= maximumHeight){
+        HighestDimension = maximumHeight;
+      }
+
+      if(HighestDimension >= maximumWidth){
+        HighestDimension = maximumWidth;
+      }
+
+      proposedHeight = HighestDimension;
+      proposedWidth = HighestDimension;
+
+    }else{
+      if(proposedWidth >= maximumWidth){
+        proposedWidth = maximumWidth;
+      }
+
+      if(proposedHeight >= maximumHeight){
+        proposedHeight = maximumHeight;
+      }
+    }
+
+    cropBox.width = proposedWidth;
+    cropBox.height = proposedHeight;
   }
 
   cropImage(
