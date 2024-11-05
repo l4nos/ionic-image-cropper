@@ -29,6 +29,7 @@
 
     <ng-container *ngIf="selectedImage">
       <app-image-cropper
+        *ngIf="!croppedImage"
         [imageUrl]="selectedImage"
         [forceSquare]="isSquareCrop"
         (croppedImage)="onCroppedImage($event)"
